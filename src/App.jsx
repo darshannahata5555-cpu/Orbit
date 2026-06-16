@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { useAppData } from './data/AppData'
 
 const LIGHT = {
   bg: '#ececed', surface: '#ffffff', surface2: '#f7f7f9', surface3: '#f1f1f4',
@@ -25,92 +26,18 @@ const DARK = {
   shadowLg: '0 8px 40px rgba(0,0,0,.6)',
 }
 
-const USER = { name: 'Aarav Mehta', initials: 'AM', role: 'HOD', dept: 'Technicals' }
-const ANNOUNCEMENTS = [
-  { tag: 'Urgent', title: 'Main stage rehearsal moved to 6 PM', body: 'All Technicals & Proshows POCs report to Audi 1. Bring updated cue sheets.', meta: 'Pinned · Global' },
-  { tag: 'Dept', title: 'Sound check slots now open', body: 'Book a 30-min slot for your Day 2 acts via the Technicals channel.', meta: 'Technicals · 2h ago' },
-  { tag: 'Info', title: 'ID badges ready for pickup', body: 'Collect crew badges from the Ops desk, Block C.', meta: 'Ops & Logistics · 5h ago' },
-]
+// Demo/live data is provided via useAppData(); see src/data/mock.js and
+// src/data/api.js. Only static UI config lives here.
 const COMM_HUB = [
   { label: 'Messages', icon: 'M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.5 8.5 0 0 1 21 11.5z', badge: '4', kind: 'blue' },
   { label: 'Dept Chat', icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', badge: null, kind: 'accent' },
   { label: 'Groups', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M12 7a4 4 0 1 0-8 0 4 4 0 0 0 8 0M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', badge: '3', kind: 'green' },
-]
-const HOME_TASKS = [
-  { id: 't1', title: 'Finalize LED wall vendor quotes', pr: 'High', due: 'Today, 5 PM', poc: 'RK', prog: 70 },
-  { id: 't2', title: 'Stage lighting plot — Day 1', pr: 'Medium', due: 'Tomorrow', poc: 'SD', prog: 30 },
-]
-const EVENTS = [
-  { time: '10:00', title: 'Council sync', dept: 'Council · Audi 2', kind: 'accent' },
-  { time: '14:00', title: 'Vendor walkthrough', dept: 'Technicals · Main Ground', kind: 'blue' },
-  { time: '18:00', title: 'Main stage rehearsal', dept: 'Proshows · Audi 1', kind: 'amber' },
-]
-const ALL_TASKS = [
-  { id: 't1', title: 'Finalize LED wall vendor quotes', status: 'In Progress', pr: 'High', due: 'Today, 5 PM', poc: 'RK', dept: 'Technicals', prog: 70, me: true, cross: false, overdue: false, dep: null },
-  { id: 't2', title: 'Stage lighting plot — Day 1', status: 'Pending', pr: 'Medium', due: 'Tomorrow', poc: 'SD', dept: 'Technicals', prog: 30, me: true, cross: false, overdue: false, dep: null },
-  { id: 't3', title: 'Cue sheet sign-off', status: 'Waiting for Dependency', pr: 'High', due: '18 Jun', poc: 'AM', dept: 'Technicals', prog: 10, me: true, cross: true, overdue: false, dep: 'Creatives PR & M' },
-  { id: 't4', title: 'Mic inventory & spares check', status: 'Blocked', pr: 'Medium', due: '17 Jun', poc: 'PT', dept: 'Technicals', prog: 0, me: false, cross: false, overdue: true, dep: null },
-  { id: 't5', title: 'Sponsor branding on LED loop', status: 'Pending', pr: 'High', due: '19 Jun', poc: 'JN', dept: 'Sponsorship', prog: 0, me: false, cross: true, overdue: false, dep: 'Technicals' },
-  { id: 't6', title: 'Rehearsal schedule lock', status: 'Pending', pr: 'High', due: '15 Jun', poc: 'AM', dept: 'Technicals', prog: 20, me: true, cross: false, overdue: true, dep: null },
-  { id: 't7', title: 'Backstage power audit', status: 'Completed', pr: 'Low', due: '14 Jun', poc: 'RK', dept: 'Technicals', prog: 100, me: false, cross: false, overdue: false, dep: null },
-  { id: 't8', title: 'Speaker placement plan', status: 'Verified', pr: 'Medium', due: '12 Jun', poc: 'SD', dept: 'Technicals', prog: 100, me: false, cross: false, overdue: false, dep: null },
 ]
 const KANBAN_COLS = [
   { key: 'todo', name: 'To Do', statuses: ['Pending', 'Waiting for Dependency'] },
   { key: 'prog', name: 'In Progress', statuses: ['In Progress'] },
   { key: 'block', name: 'Blocked', statuses: ['Blocked'] },
   { key: 'done', name: 'Done', statuses: ['Completed', 'Verified'] },
-]
-const FINANCE = { allocated: 250000, spent: 168500, remaining: 81500, pending: 32400 }
-const FINANCE_REQUESTS = [
-  { id: 'r1', who: 'Priya Tandon', initials: 'PT', title: 'Wireless mic batteries (×24)', amount: 8400, category: 'Equipment', date: '14 Jun', invoice: 'INV-2291' },
-  { id: 'r2', who: 'Rohan Kapoor', initials: 'RK', title: 'LED wall transport — vendor', amount: 15000, category: 'Logistics', date: '13 Jun', invoice: 'INV-2287' },
-  { id: 'r3', who: 'Sana Dewan', initials: 'SD', title: 'Gel sheets & gaffer tape', amount: 3200, category: 'Consumables', date: '12 Jun', invoice: 'INV-2280' },
-]
-const MY_CLAIMS = [
-  { id: 'm1', title: 'Stage crew refreshments', amount: 2100, status: 'Reimbursed', date: '10 Jun' },
-  { id: 'm2', title: 'Cable adapters & connectors', amount: 5800, status: 'Approved', date: '11 Jun' },
-  { id: 'm3', title: 'Backup SD cards', amount: 1900, status: 'Pending', date: '15 Jun' },
-]
-const FOLDERS = [
-  { name: 'Department Files', count: 42, kind: 'accent' },
-  { name: 'Event Files', count: 28, kind: 'blue' },
-  { name: 'Finance Documents', count: 16, kind: 'green' },
-  { name: 'Sponsors', count: 11, kind: 'amber' },
-  { name: 'Creative Assets', count: 67, kind: 'red' },
-]
-const RECENT_FILES = [
-  { name: 'LED Wall Layout v3.pdf', type: 'PDF', size: '2.4 MB', date: 'Today', starred: true },
-  { name: 'Day 1 Run Sheet.xlsx', type: 'XLS', size: '88 KB', date: 'Today', starred: false },
-  { name: 'Stage Render Final.png', type: 'IMG', size: '5.1 MB', date: 'Yesterday', starred: true },
-  { name: 'Sound Vendor Contract.pdf', type: 'PDF', size: '640 KB', date: '14 Jun', starred: false },
-  { name: 'Crew Roster.docx', type: 'DOC', size: '120 KB', date: '13 Jun', starred: false },
-]
-const CONVERSATIONS = [
-  { id: 'c1', name: 'Sana Dewan', sub: 'typing…', time: 'now', unread: 0, av: 'SD', online: true, typing: true, kind: 'DM' },
-  { id: 'c2', name: 'Technicals Channel', sub: 'Priya: mics sorted, spares logged', time: '2m', unread: 3, channel: true, kind: 'Channel' },
-  { id: 'c3', name: 'Rohan Kapoor', sub: '🎙 Voice message · 0:14', time: '18m', unread: 1, av: 'RK', kind: 'DM' },
-  { id: 'c4', name: 'Stage Crew', sub: 'You: cue sheet shared', time: '1h', unread: 0, group: true, kind: 'Group' },
-  { id: 'c5', name: 'Proshows Channel', sub: 'Rehearsal moved to 6 PM today', time: '3h', unread: 0, channel: true, kind: 'Channel' },
-]
-const BASE_THREAD = [
-  { me: false, text: 'Hey, did the LED vendor confirm the install slot?', time: '5:42' },
-  { me: true, text: 'Yes — locked for 2 PM tomorrow. Sending the layout now.', time: '5:43', read: true },
-  { me: true, kind: 'file', fname: 'LED Wall Layout v3.pdf', fsize: '2.4 MB', time: '5:43', read: true },
-  { me: false, text: 'Perfect, that works 🙌', time: '5:44', reaction: '👍' },
-  { me: false, kind: 'voice', dur: '0:14', time: '5:45' },
-  { me: true, text: 'Can you confirm the rigging crew is briefed?', time: '5:46', read: false },
-]
-const SEARCH_ITEMS = [
-  { type: 'People', name: 'Sana Dewan', sub: 'Core Member · Technicals', av: 'SD' },
-  { type: 'People', name: 'Rohan Kapoor', sub: 'Member · Technicals', av: 'RK' },
-  { type: 'People', name: 'Priya Tandon', sub: 'Member · Technicals', av: 'PT' },
-  { type: 'Tasks', name: 'Finalize LED wall vendor quotes', sub: 'In Progress · High · Today', av: null },
-  { type: 'Tasks', name: 'Cue sheet sign-off', sub: 'Waiting for Dependency · 18 Jun', av: null },
-  { type: 'Files', name: 'LED Wall Layout v3.pdf', sub: '2.4 MB · PDF · Today', av: null },
-  { type: 'Files', name: 'Sound Vendor Contract.pdf', sub: '640 KB · PDF · 14 Jun', av: null },
-  { type: 'Messages', name: 'Can you approve the mic battery claim?', sub: 'Priya Tandon · Technicals', av: null },
-  { type: 'Announcements', name: 'Main stage rehearsal moved to 6 PM', sub: 'Pinned · Global', av: null },
 ]
 const FAB_ACTIONS = [
   { label: 'New Task', icon: 'M9 11l3 3 8-8M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11', kind: 'newtask' },
@@ -159,13 +86,13 @@ function searchTypeStyle(type, t) {
   }
   return m[type] || m['Files']
 }
-function filterTasks(tab) {
-  if (tab === 'me') return ALL_TASKS.filter(x => x.me)
-  if (tab === 'dept') return ALL_TASKS.filter(x => x.dept === 'Technicals')
-  if (tab === 'cross') return ALL_TASKS.filter(x => x.cross)
-  if (tab === 'completed') return ALL_TASKS.filter(x => x.status === 'Completed' || x.status === 'Verified')
-  if (tab === 'overdue') return ALL_TASKS.filter(x => x.overdue)
-  return ALL_TASKS
+function filterTasks(tasks, tab) {
+  if (tab === 'me') return tasks.filter(x => x.me)
+  if (tab === 'dept') return tasks.filter(x => x.dept === 'Technicals')
+  if (tab === 'cross') return tasks.filter(x => x.cross)
+  if (tab === 'completed') return tasks.filter(x => x.status === 'Completed' || x.status === 'Verified')
+  if (tab === 'overdue') return tasks.filter(x => x.overdue)
+  return tasks
 }
 
 function Ic({ d, size = 18, color = 'currentColor', sw = 2 }) {
@@ -193,20 +120,47 @@ export default function App() {
   const [filter, setFilter] = useState('All')
   const [formPr, setFormPr] = useState('Medium')
   const [formCat, setFormCat] = useState('Equipment')
+  const [formTitle, setFormTitle] = useState('')
+  const [claimTitle, setClaimTitle] = useState('')
+  const [claimAmount, setClaimAmount] = useState('')
+  const [baseThread, setBaseThread] = useState([])
   const toastRef = useRef(null)
   const t = dark ? DARK : LIGHT
+
+  // Data + actions resolve to Supabase when configured, else demo data.
+  const { live, data, actions, signOut } = useAppData()
+  const USER = data.user
+  const ANNOUNCEMENTS = data.announcements
+  const HOME_TASKS = data.homeTasks
+  const EVENTS = data.events
+  const ALL_TASKS = data.allTasks
+  const FINANCE = data.finance
+  const FINANCE_REQUESTS = data.financeRequests
+  const MY_CLAIMS = data.myClaims
+  const FOLDERS = data.folders
+  const RECENT_FILES = data.recentFiles
+  const CONVERSATIONS = data.conversations
+  const SEARCH_ITEMS = [
+    ...ALL_TASKS.map(x => ({ type: 'Tasks', name: x.title, sub: `${x.status} · ${x.pr} · ${x.due}`, av: null })),
+    ...RECENT_FILES.map(x => ({ type: 'Files', name: x.name, sub: `${x.size} · ${x.type} · ${x.date}`, av: null })),
+    ...ANNOUNCEMENTS.map(x => ({ type: 'Announcements', name: x.title, sub: x.meta, av: null })),
+  ]
 
   function showToast(msg) {
     setToast(msg); clearTimeout(toastRef.current)
     toastRef.current = setTimeout(() => setToast(null), 2200)
   }
   function go(newTab) { setTab(newTab); setFabOpen(false) }
-  function setReq(id, status, msg) { setReqStatus(prev => ({ ...prev, [id]: status })); showToast(msg) }
-  function openThread(c) { setActiveChat(c); setChatView('thread'); setExtraMsgs([]) }
+  function setReq(id, status, msg) { setReqStatus(prev => ({ ...prev, [id]: status })); showToast(msg); actions.setRequestStatus(id, status) }
+  async function openThread(c) {
+    setActiveChat(c); setChatView('thread'); setExtraMsgs([]); setBaseThread([])
+    setBaseThread(await actions.fetchThread(c.id))
+  }
   function backToList() { setChatView('list'); setActiveChat(null) }
   function sendMsg() {
     const d = draft.trim(); if (!d) return
     setExtraMsgs(prev => [...prev, { me: true, text: d, time: 'now', read: false }]); setDraft('')
+    if (live) actions.sendMessage(activeChat.id, d)
   }
   function handleFab(kind) {
     if (kind === 'newtask') { setFabOpen(false); setTab('tasks'); setModal('newtask') }
@@ -227,13 +181,13 @@ export default function App() {
     calDays.push({ n: String(n), bg: today ? t.accent : 'transparent', color: today ? '#fff' : t.text, dot: calDots[n] && !today ? calDots[n] : (today ? 'rgba(255,255,255,.7)' : 'transparent') })
   }
 
-  const tasksList = filterTasks(taskTab)
+  const tasksList = filterTasks(ALL_TASKS, taskTab)
   const kanban = KANBAN_COLS.map(col => ({ ...col, count: ALL_TASKS.filter(x => col.statuses.includes(x.status)).length, tasks: ALL_TASKS.filter(x => col.statuses.includes(x.status)) }))
   const spentPct = Math.round(FINANCE.spent / FINANCE.allocated * 100)
   const finReqs = FINANCE_REQUESTS.map(r => { const st = reqStatus[r.id] || 'Pending'; const [col, bg] = claimStyle(st, t); return { ...r, amountF: inr(r.amount), status: st, isPending: st === 'Pending', statusColor: col, statusBg: bg } })
   const pendingCount = finReqs.filter(r => r.isPending).length
   const searchResults = SEARCH_ITEMS.filter(x => (filter === 'All' || x.type === filter) && (!query.trim() || x.name.toLowerCase().includes(query.toLowerCase()) || x.sub.toLowerCase().includes(query.toLowerCase())))
-  const thread = [...BASE_THREAD, ...extraMsgs]
+  const thread = [...baseThread, ...extraMsgs]
 
   const sh = { card: { background: t.surface, border: `1px solid ${t.border}`, borderRadius: 14, padding: 14, boxShadow: t.shadow } }
   const hdr = { background: t.surface, position: 'sticky', top: 0, zIndex: 5, borderBottom: `1px solid ${t.border}` }
@@ -263,6 +217,11 @@ export default function App() {
                   <Ic size={18} color={t.text2} d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
                   <span style={{ position: 'absolute', top: 7, right: 8, width: 7, height: 7, borderRadius: '50%', background: t.red, border: `2px solid ${t.surface2}` }} />
                 </button>
+                {live && (
+                  <button onClick={signOut} title="Sign out" style={{ width: 38, height: 38, borderRadius: 11, border: `1px solid ${t.border}`, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                    <Ic size={18} color={t.text2} d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+                  </button>
+                )}
               </header>
 
               <div style={{ padding: '20px 20px 0', display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -820,7 +779,7 @@ export default function App() {
                   </div>
                 </div>
                 <div style={{ padding: '18px 20px 28px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-                  <div><div style={{ fontSize: 12.5, fontWeight: 700, color: t.text2, marginBottom: 7 }}>Title</div><input placeholder="e.g. Finalize stage backdrop" style={{ width: '100%', border: `1px solid ${t.border}`, background: t.surface2, borderRadius: 11, padding: '12px 14px', fontSize: 14, fontWeight: 500, color: t.text, outline: 'none' }} /></div>
+                  <div><div style={{ fontSize: 12.5, fontWeight: 700, color: t.text2, marginBottom: 7 }}>Title</div><input value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder="e.g. Finalize stage backdrop" style={{ width: '100%', border: `1px solid ${t.border}`, background: t.surface2, borderRadius: 11, padding: '12px 14px', fontSize: 14, fontWeight: 500, color: t.text, outline: 'none' }} /></div>
                   <div><div style={{ fontSize: 12.5, fontWeight: 700, color: t.text2, marginBottom: 7 }}>Description</div><textarea rows={3} placeholder="Add details, context, links…" style={{ width: '100%', border: `1px solid ${t.border}`, background: t.surface2, borderRadius: 11, padding: '12px 14px', fontSize: 14, fontWeight: 500, color: t.text, outline: 'none', resize: 'none' }} /></div>
                   <div>
                     <div style={{ fontSize: 12.5, fontWeight: 700, color: t.text2, marginBottom: 7 }}>Priority</div>
@@ -838,7 +797,7 @@ export default function App() {
                       <button key={i} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, border: `1px dashed ${t.border2}`, background: 'transparent', borderRadius: 11, padding: 11, fontSize: 13, fontWeight: 600, color: t.text2, cursor: 'pointer' }}><Ic size={15} color={t.text2} d={b.icon} />{b.label}</button>
                     ))}
                   </div>
-                  <button onClick={() => { setModal(null); setTab('tasks'); showToast('Task created & assigned') }} style={{ background: t.accent, color: '#fff', border: 'none', borderRadius: 13, padding: 15, fontSize: 15, fontWeight: 700, cursor: 'pointer', marginTop: 2 }}>Create Task</button>
+                  <button onClick={() => { actions.createTask({ title: formTitle || 'Untitled task', priority: formPr }); setFormTitle(''); setModal(null); setTab('tasks'); showToast('Task created & assigned') }} style={{ background: t.accent, color: '#fff', border: 'none', borderRadius: 13, padding: 15, fontSize: 15, fontWeight: 700, cursor: 'pointer', marginTop: 2 }}>Create Task</button>
                 </div>
               </div>
             )}
@@ -854,9 +813,9 @@ export default function App() {
                   </div>
                 </div>
                 <div style={{ padding: '18px 20px 28px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-                  <div><div style={{ fontSize: 12.5, fontWeight: 700, color: t.text2, marginBottom: 7 }}>Expense title</div><input placeholder="e.g. Mic batteries" style={{ width: '100%', border: `1px solid ${t.border}`, background: t.surface2, borderRadius: 11, padding: '12px 14px', fontSize: 14, fontWeight: 500, color: t.text, outline: 'none' }} /></div>
+                  <div><div style={{ fontSize: 12.5, fontWeight: 700, color: t.text2, marginBottom: 7 }}>Expense title</div><input value={claimTitle} onChange={e => setClaimTitle(e.target.value)} placeholder="e.g. Mic batteries" style={{ width: '100%', border: `1px solid ${t.border}`, background: t.surface2, borderRadius: 11, padding: '12px 14px', fontSize: 14, fontWeight: 500, color: t.text, outline: 'none' }} /></div>
                   <div style={{ display: 'flex', gap: 12 }}>
-                    <div style={{ flex: 1 }}><div style={{ fontSize: 12.5, fontWeight: 700, color: t.text2, marginBottom: 7 }}>Amount</div><div style={{ display: 'flex', alignItems: 'center', gap: 6, border: `1px solid ${t.border}`, background: t.surface2, borderRadius: 11, padding: '0 14px' }}><span style={{ fontSize: 15, fontWeight: 700, color: t.text2 }}>₹</span><input placeholder="0" style={{ width: '100%', border: 'none', background: 'transparent', padding: '12px 0', fontSize: 14, fontWeight: 600, color: t.text, outline: 'none' }} /></div></div>
+                    <div style={{ flex: 1 }}><div style={{ fontSize: 12.5, fontWeight: 700, color: t.text2, marginBottom: 7 }}>Amount</div><div style={{ display: 'flex', alignItems: 'center', gap: 6, border: `1px solid ${t.border}`, background: t.surface2, borderRadius: 11, padding: '0 14px' }}><span style={{ fontSize: 15, fontWeight: 700, color: t.text2 }}>₹</span><input value={claimAmount} onChange={e => setClaimAmount(e.target.value)} inputMode="numeric" placeholder="0" style={{ width: '100%', border: 'none', background: 'transparent', padding: '12px 0', fontSize: 14, fontWeight: 600, color: t.text, outline: 'none' }} /></div></div>
                     <div style={{ flex: 1 }}><div style={{ fontSize: 12.5, fontWeight: 700, color: t.text2, marginBottom: 7 }}>Date</div><div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `1px solid ${t.border}`, background: t.surface2, borderRadius: 11, padding: '12px 14px' }}><Ic size={15} color={t.text3} d="M3 4h18v18H3zM16 2v4M8 2v4M3 10h18" /><span style={{ fontSize: 13.5, color: t.text, fontWeight: 500 }}>16 Jun</span></div></div>
                   </div>
                   <div>
@@ -878,7 +837,7 @@ export default function App() {
                     <Ic size={17} color={t.text3} d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 16v-4M12 8h.01" />
                     <span style={{ fontSize: 11.5, color: t.text2, fontWeight: 500, lineHeight: 1.4 }}>Routes to HOD → Finance team for approval.</span>
                   </div>
-                  <button onClick={() => { setModal(null); showToast('Reimbursement submitted for approval') }} style={{ background: t.accent, color: '#fff', border: 'none', borderRadius: 13, padding: 15, fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Submit Request</button>
+                  <button onClick={() => { actions.submitClaim({ title: claimTitle || 'Reimbursement', amount: Number(claimAmount) || 0, category: formCat, date_label: '16 Jun' }); setClaimTitle(''); setClaimAmount(''); setModal(null); showToast('Reimbursement submitted for approval') }} style={{ background: t.accent, color: '#fff', border: 'none', borderRadius: 13, padding: 15, fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Submit Request</button>
                 </div>
               </div>
             )}
