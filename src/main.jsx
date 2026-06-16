@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import Login from './Login.jsx'
+import Onboarding from './Onboarding.jsx'
 import { AppDataProvider, useAppData } from './data/AppData.jsx'
 
 function Splash({ text = 'Loading Orbit…' }) {
@@ -14,11 +15,12 @@ function Splash({ text = 'Loading Orbit…' }) {
 }
 
 function Root() {
-  const { authReady, needsLogin, loading, data, error } = useAppData()
+  const { authReady, needsLogin, needsOnboarding, loading, data, error } = useAppData()
   if (!authReady) return <Splash />
   if (needsLogin) return <Login />
   if (error) return <Splash text={`Couldn't load data: ${error}`} />
   if (loading || !data) return <Splash />
+  if (needsOnboarding) return <Onboarding />
   return <App />
 }
 

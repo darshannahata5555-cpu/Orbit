@@ -25,6 +25,7 @@ create table if not exists public.users (
   initials  text not null,
   role      orbit_role not null default 'Member',
   dept      text not null default 'Technicals',
+  onboarded boolean not null default false,   -- set true once dept + position are chosen
   created_at timestamptz not null default now()
 );
 

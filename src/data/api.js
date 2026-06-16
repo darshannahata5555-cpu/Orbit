@@ -2,7 +2,6 @@
 // the UI already expects (see src/data/mock.js), so screens don't care
 // where the data came from.
 import { supabase } from '../lib/supabase'
-import { EVENTS } from './mock'
 
 const fmtTime = iso => {
   try {
@@ -58,7 +57,7 @@ export async function fetchAll(me) {
     announcements: (ann.data || []).map(a => ({ tag: a.tag, title: a.title, body: a.body, meta: a.meta })),
     allTasks,
     homeTasks: allTasks.slice(0, 2).map(t => ({ id: t.id, title: t.title, pr: t.pr, due: t.due, poc: t.poc, prog: t.prog })),
-    events: EVENTS, // schedule is static demo content
+    events: [], // no schedule table yet — real data only
     finance,
     financeRequests: (requests.data || []).map(r => ({
       id: r.id, who: r.requester?.name || 'Member', initials: r.requester?.initials || '—',
@@ -96,6 +95,17 @@ export async function fetchThread(conversationId, me) {
 }
 
 // ── Writes ───────────────────────────────────────────────────────────
+export async function completeOnboarding({ dept, role }) {
+  const { data: auth } = await supabase.auth.getUser()
+  const uid = auth?.user?.id
+  if (!uid) throw new Error('Not signed in')
+  const { error } = await supabase
+    .from('users')
+    .update({ dept, role, onboarded: true })
+    .eq('auth_id', uid)
+  if (error) throw error
+}
+
 export async function setRequestStatus(id, status) {
   await supabase.from('finance_requests').update({ status }).eq('id', id)
 }

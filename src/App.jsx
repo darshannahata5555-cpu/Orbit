@@ -126,6 +126,7 @@ export default function App() {
   const [baseThread, setBaseThread] = useState([])
   const toastRef = useRef(null)
   const t = dark ? DARK : LIGHT
+  const Empty = ({ text }) => <div style={{ fontSize: 12.5, color: t.text3, fontWeight: 600, padding: '20px 2px', textAlign: 'center', width: '100%' }}>{text}</div>
 
   // Data + actions resolve to Supabase when configured, else demo data.
   const { live, data, actions, signOut } = useAppData()
@@ -215,7 +216,6 @@ export default function App() {
                 </button>
                 <button onClick={() => {}} style={{ width: 38, height: 38, borderRadius: 11, border: `1px solid ${t.border}`, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}>
                   <Ic size={18} color={t.text2} d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
-                  <span style={{ position: 'absolute', top: 7, right: 8, width: 7, height: 7, borderRadius: '50%', background: t.red, border: `2px solid ${t.surface2}` }} />
                 </button>
                 {live && (
                   <button onClick={signOut} title="Sign out" style={{ width: 38, height: 38, borderRadius: 11, border: `1px solid ${t.border}`, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
@@ -232,6 +232,7 @@ export default function App() {
                     <span style={{ fontSize: 12.5, fontWeight: 600, color: t.accent, cursor: 'pointer' }}>See all</span>
                   </div>
                   <div style={{ display: 'flex', gap: 12, overflowX: 'auto', margin: '0 -20px', padding: '2px 20px', scrollSnapType: 'x mandatory', scrollbarWidth: 'none' }}>
+                    {ANNOUNCEMENTS.length === 0 && <Empty text="No announcements yet" />}
                     {ANNOUNCEMENTS.map((a, i) => {
                       const [tc, bg] = tagStyle(a.tag, t)
                       return (
@@ -271,6 +272,7 @@ export default function App() {
                     <span onClick={() => go('tasks')} style={{ fontSize: 12.5, fontWeight: 600, color: t.accent, cursor: 'pointer' }}>View all</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {HOME_TASKS.length === 0 && <Empty text="No upcoming tasks" />}
                     {HOME_TASKS.map((task, i) => {
                       const [pc, pb] = prStyle(task.pr, t)
                       return (
@@ -304,6 +306,7 @@ export default function App() {
                     <span style={{ fontSize: 12.5, fontWeight: 600, color: t.text3 }}>Tue, 16 Jun</span>
                   </div>
                   <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 16, padding: '6px 16px', boxShadow: t.shadow }}>
+                    {EVENTS.length === 0 && <Empty text="Nothing scheduled today" />}
                     {EVENTS.map((e, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 0', borderBottom: `1px solid ${i < EVENTS.length - 1 ? t.border : 'transparent'}` }}>
                         <div style={{ fontSize: 12, fontWeight: 700, color: t.text2, width: 48, flexShrink: 0 }}>{e.time}</div>
@@ -348,6 +351,7 @@ export default function App() {
 
               {taskView === 'list' && (
                 <div style={{ padding: '8px 20px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {tasksList.length === 0 && <Empty text="No tasks here yet" />}
                   {tasksList.map(task => {
                     const [sc, sb] = statusStyle(task.status, t); const [pc, pb] = prStyle(task.pr, t)
                     return (
@@ -480,6 +484,7 @@ export default function App() {
                 <section>
                   <h2 style={{ fontSize: 15, fontWeight: 700, color: t.text, marginBottom: 12 }}>Reimbursement requests</h2>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+                    {finReqs.length === 0 && <Empty text="No reimbursement requests" />}
                     {finReqs.map(r => (
                       <div key={r.id} style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 14, padding: 14, boxShadow: t.shadow }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 12 }}>
@@ -514,6 +519,7 @@ export default function App() {
                     </button>
                   </div>
                   <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 14, padding: '4px 14px', boxShadow: t.shadow }}>
+                    {MY_CLAIMS.length === 0 && <Empty text="No claims yet" />}
                     {MY_CLAIMS.map((c, i) => {
                       const [sc, sb] = claimStyle(c.status, t)
                       return (
@@ -555,6 +561,7 @@ export default function App() {
                 <section>
                   <h2 style={{ fontSize: 15, fontWeight: 700, color: t.text, marginBottom: 12 }}>Folders</h2>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 11 }}>
+                    {FOLDERS.length === 0 && <Empty text="No folders yet" />}
                     {FOLDERS.map((f, i) => (
                       <button key={i} style={{ textAlign: 'left', background: t.surface, border: `1px solid ${t.border}`, borderRadius: 14, padding: 14, boxShadow: t.shadow, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{ width: 40, height: 40, borderRadius: 11, background: ks(f.kind, t), display: 'flex', alignItems: 'center', justifyContent: 'center', color: kc(f.kind, t), flexShrink: 0 }}>
@@ -571,6 +578,7 @@ export default function App() {
                 <section style={{ marginBottom: 8 }}>
                   <h2 style={{ fontSize: 15, fontWeight: 700, color: t.text, marginBottom: 12 }}>Recent</h2>
                   <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: 14, padding: '4px 14px', boxShadow: t.shadow }}>
+                    {RECENT_FILES.length === 0 && <Empty text="No files yet" />}
                     {RECENT_FILES.map((f, i) => {
                       const [fc, fb] = fileTypeStyle(f.type, t)
                       return (
@@ -647,6 +655,7 @@ export default function App() {
                 </div>
               </header>
               <div style={{ padding: '6px 20px 0' }}>
+                {CONVERSATIONS.length === 0 && <Empty text="No conversations yet" />}
                 {CONVERSATIONS.map(c => (
                   <button key={c.id} onClick={() => openThread(c)} style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 13, padding: '13px 0', border: 'none', borderBottom: `1px solid ${t.border}`, background: 'transparent', cursor: 'pointer' }}>
                     <div style={{ position: 'relative', flexShrink: 0 }}>

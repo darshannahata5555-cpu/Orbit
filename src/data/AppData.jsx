@@ -59,6 +59,7 @@ export function AppDataProvider({ children }) {
   const signOut = useCallback(async () => { if (live) await supabase.auth.signOut() }, [live])
 
   const actions = {
+    async completeOnboarding(payload)  { if (live) { await api.completeOnboarding(payload); await refresh() } },
     async setRequestStatus(id, status) { if (live) { await api.setRequestStatus(id, status); refresh() } },
     async createTask(payload)          { if (live) { await api.createTask(payload, me); refresh() } },
     async submitClaim(payload)         { if (live) { await api.submitClaim(payload, me); refresh() } },
@@ -67,6 +68,11 @@ export function AppDataProvider({ children }) {
     subscribeToMessages(cid, cb)       { return live ? api.subscribeToMessages(cid, cb) : null },
   }
 
-  const value = { live, authReady, session, needsLogin: live && !session, me, data, loading, error, refresh, signOut, actions }
+  const value = {
+    live, authReady, session,
+    needsLogin: live && !session,
+    needsOnboarding: live && !!session && !!me && !me.onboarded,
+    me, data, loading, error, refresh, signOut, actions,
+  }
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>
 }
