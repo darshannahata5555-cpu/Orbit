@@ -239,8 +239,8 @@ export default function App() {
   const hdr = { background: t.surface, position: 'sticky', top: 0, zIndex: 5, borderBottom: `1px solid ${t.border}` }
 
   return (
-    <div style={{ minHeight: '100vh', background: t.bg, display: 'flex', justifyContent: 'center', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
-      <div style={{ width: '100%', maxWidth: 430, background: t.surface, position: 'relative', display: 'flex', flexDirection: 'column', minHeight: '100vh', boxShadow: '0 0 80px rgba(0,0,0,.08)', overflow: 'hidden' }}>
+    <div style={{ height: '100dvh', background: t.bg, display: 'flex', justifyContent: 'center', fontFamily: "'Plus Jakarta Sans',sans-serif", overflow: 'hidden' }}>
+      <div style={{ width: '100%', maxWidth: 430, background: t.surface, position: 'relative', display: 'flex', flexDirection: 'column', height: '100dvh', boxShadow: '0 0 80px rgba(0,0,0,.08)', overflow: 'hidden' }}>
 
         <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', background: t.bg, paddingBottom: 148, scrollbarWidth: 'none' }}>
 
